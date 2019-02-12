@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BAMEngine
 {
@@ -8,8 +9,18 @@ namespace BAMEngine
 
         public List<Piece> Connections { get; protected set; }
 
-        public abstract void Break();
-        public abstract void Fall();
+        public Action OnBreakCallback;
+        public Action OnFallCallback;
+
+        internal virtual void Break()
+        {
+            OnBreakCallback?.Invoke();
+        }
+
+        internal virtual void Fall()
+        {
+            OnFallCallback?.Invoke();
+        }
 
         public void UpdatePosition(PiecesLine line, int index)
         {

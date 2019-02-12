@@ -13,7 +13,6 @@ namespace BAMEngine
         {
             GREEN,
             ORANGE,
-            YELLOW,
             BLUE,
             RED,
             PURPLE,
@@ -32,17 +31,7 @@ namespace BAMEngine
             return piece.pieceType == pieceType;
         }
 
-        public static PieceType GetRandom()
-        {
-            return (PieceType) Random.Range(0, (int) PieceType.MAX);
-        }
-
-        public override void Break()
-        {
-        }
-        
-        public override void Fall()
-        {
-        }
+        public static NormalPiece GetRandom() => new NormalPiece(GetRandomType());
+        public static PieceType GetRandomType() => (PieceType) Random.Range(0, (int) PieceType.MAX);
     }
 }

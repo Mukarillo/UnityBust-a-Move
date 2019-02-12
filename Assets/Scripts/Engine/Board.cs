@@ -40,7 +40,7 @@ namespace BAMEngine
                 var lineAmount = MAX_PIECES_PER_LINE - (line.IsShortLine ? 1 : 0);
                 for (var j = 0; j < lineAmount; j++)
                 {
-                    var pieceToAdd = i < INITIAL_LINE_AMOUNT ? new NormalPiece(NormalPiece.GetRandom()) : null;
+                    var pieceToAdd = i < INITIAL_LINE_AMOUNT ? NormalPiece.GetRandom() : null;
                     pieceToAdd?.UpdatePosition(line, j);
                     line.Add(pieceToAdd);
                 }
