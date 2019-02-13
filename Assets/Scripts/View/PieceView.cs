@@ -4,7 +4,7 @@ using System;
 
 public class PieceView : MonoBehaviour
 {
-    private const float SPEED = 0.3f;
+    private const float SPEED = 0.15f;
 
     public Piece piece { get; private set; }
 
@@ -39,21 +39,28 @@ public class PieceView : MonoBehaviour
     private void SnapPiece()
     {
         Debug.Log(transform.position);
-        var line = Mathf.RoundToInt(transform.position.y);
-        var position = Mathf.Round(transform.position.x * 2f) * 0.5f;
+        var line = Mathf.FloorToInt(transform.position.y);
+        var shortLine = IsShortLine(line);
+        var position = Mathf.Clamp(Mathf.Floor(transform.position.x), 0, shortLine ? 6 : 7) + (shortLine ? 0.5f : 0f);
         transform.position = new Vector3(position, line, 0);
-
+        
+        Debug.Log(line + " " + Mathf.Abs(line) + " ||| " + position + " " + Mathf.FloorToInt(position));
         GameView.Instance.PlacePieceOnBoard(this, Mathf.Abs(line), Mathf.FloorToInt(position));
+    }
+
+    private bool IsShortLine(int index)
+    {
+        return index % 2 != 0;
     }
 
     private void OnBreak()
     {
-        throw new NotImplementedException();
+        Destroy(gameObject);
     }
 
     private void OnFall()
     {
-        throw new NotImplementedException();
+        Destroy(gameObject);
     }
 
     private void Update()

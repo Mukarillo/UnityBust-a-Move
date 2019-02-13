@@ -68,20 +68,33 @@ namespace BAMEngine
         private void RefreshPieceConnections(Piece piece)
         {
             var connections = new List<Piece>();
+            var holdConnections = new List<Piece>();
             Piece outPiece = null;
             var lineIndex = piece.Line.Index;
-            //UP LEFT
+            //UP RIGHT/LEFT
             if (TryGetPiece(lineIndex + 1, piece.Index + (piece.Line.IsShortLine ? 1 : -1), out outPiece))
+            {
                 connections.Add(outPiece);
+                holdConnections.Add(outPiece);
+            }
             //UP
             if (TryGetPiece(lineIndex + 1, piece.Index, out outPiece))
+            {
                 connections.Add(outPiece);
+                holdConnections.Add(outPiece);
+            }
             //RIGHT
             if (TryGetPiece(lineIndex, piece.Index + 1, out outPiece))
+            {
                 connections.Add(outPiece);
+                holdConnections.Add(outPiece);
+            }
             //LEFT
             if (TryGetPiece(lineIndex, piece.Index - 1, out outPiece))
+            {
                 connections.Add(outPiece);
+                holdConnections.Add(outPiece);
+            }
             //DOWN
             if (TryGetPiece(lineIndex - 1, piece.Index, out outPiece))
                 connections.Add(outPiece);
@@ -89,11 +102,12 @@ namespace BAMEngine
             if (TryGetPiece(lineIndex - 1, piece.Index + (piece.Line.IsShortLine ? 1 : -1), out outPiece))
                 connections.Add(outPiece);
 
-            piece.UpdateConnections(connections);
+            piece.UpdateConnections(connections, holdConnections);
         }
 
-        public void PlacePiece(Piece piece, int lineIndex, int positionIndex)
+        internal void PlacePiece(Piece piece, int lineIndex, int positionIndex)
         {
+            Debug.LogWarning($"Pacing piece: {lineIndex} {positionIndex}");
             lines[lineIndex][positionIndex] = piece;
             piece.UpdatePosition(lines[lineIndex], positionIndex);
 
@@ -123,19 +137,27 @@ namespace BAMEngine
 
         private void CheckFallingPieces()
         {
-            foreach (var line in lines)
+            for (var i = 0; i < lines.Count; i++)
             {
-                if(!line.CanFall)
+                if(!lines[i].CanFall)
                     continue;
 
-                foreach (var piece in line)
+                for (var j = 0; j < lines[i].Count; j++)
                 {
-                    if(piece == null) continue;
-                    if (piece.Connections.Count == 0)
-                    {
-                        RemoveNormalPiece((NormalPiece)piece, piece.Fall);
-                    }
+                    if(lines[i][j] == null) continue;
+                    if (lines[i][j].HoldConnections.Count == 0)
+                        RecursiveFall((NormalPiece) lines[i][j]);
                 }
+            }
+        }
+
+        private void RecursiveFall(NormalPiece piece)
+        {
+            RemoveNormalPiece(piece, piece.Fall);
+            foreach (var pieceConnection in piece.Connections)
+            {
+                if(!pieceConnection.isFalling)
+                    RecursiveFall((NormalPiece)pieceConnection);
             }
         }
 

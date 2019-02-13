@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace BAMEngine
 {
@@ -8,9 +10,12 @@ namespace BAMEngine
         public int Index { get; protected set; }
 
         public List<Piece> Connections { get; protected set; }
+        public List<Piece> HoldConnections { get; protected set; }
 
         public Action OnBreakCallback;
         public Action OnFallCallback;
+
+        public bool isFalling { get; protected set; }
 
         internal virtual void Break()
         {
@@ -19,6 +24,7 @@ namespace BAMEngine
 
         internal virtual void Fall()
         {
+            isFalling = true;
             OnFallCallback?.Invoke();
         }
 
@@ -28,9 +34,10 @@ namespace BAMEngine
             Index = index;
         }
 
-        public void UpdateConnections(List<Piece> connections)
+        public void UpdateConnections(List<Piece> connections, List<Piece> holdConnections)
         {
             Connections = connections;
+            HoldConnections = holdConnections;
         }
     }
 }

@@ -28,4 +28,9 @@ public class BoardView : MonoBehaviour
             }
         }
     }
+
+    public void PlacePiece(PieceView piece, int line, int position)
+    {
+        mViewPieces.Add(piece);
+    }
 }

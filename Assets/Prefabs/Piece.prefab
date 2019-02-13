@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4362330315501746}
   - component: {fileID: 212765537222153242}
   - component: {fileID: 58919861171179308}
-  - component: {fileID: 50682901968323206}
+  - component: {fileID: 50752760238549040}
   m_Layer: 0
   m_Name: Piece
   m_TagString: Untagged
@@ -42,7 +42,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &50682901968323206
+--- !u!50 &50752760238549040
 Rigidbody2D:
   serializedVersion: 4
   m_ObjectHideFlags: 1
@@ -53,7 +53,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 0.0001
+  m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
@@ -61,7 +61,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
-  m_Constraints: 7
+  m_Constraints: 0
 --- !u!58 &58919861171179308
 CircleCollider2D:
   m_ObjectHideFlags: 1
@@ -71,12 +71,12 @@ CircleCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.475
 --- !u!212 &212765537222153242
 SpriteRenderer:
   m_ObjectHideFlags: 1

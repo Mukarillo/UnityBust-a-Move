@@ -15,7 +15,7 @@ public class GameView : MonoBehaviour
     {
         Instance = this;
 
-        gameEngine = new GameEngine();
+        gameEngine = new GameEngine(CreateNextPiece);
         mBoardView = gameObject.AddComponent<BoardView>();
     }
 
@@ -26,7 +26,8 @@ public class GameView : MonoBehaviour
 
     public void PlacePieceOnBoard(PieceView piece, int lineIndex, int positionIndex)
     {
-        gameEngine.board.PlacePiece(piece.piece, lineIndex, positionIndex);
+        gameEngine.PlacePiece(piece.piece, lineIndex, positionIndex);
+        mBoardView.PlacePiece(piece, lineIndex, positionIndex);
     }
 
     private void CreateNextPiece()
@@ -39,7 +40,7 @@ public class GameView : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.Space))
         {
-            mCurrentPiece.Shoot(new Vector3(0.5f, 1));
+            mCurrentPiece.Shoot((Camera.main.ScreenToWorldPoint(Input.mousePosition) - mCurrentPiece.transform.position).normalized);
         }
     }
 }
