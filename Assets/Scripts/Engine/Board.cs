@@ -6,11 +6,14 @@ namespace BAMEngine
 {
     public class Board
     {
-        private const int MAX_PIECES_PER_LINE = 8;
-        private const int MAX_LINES = 12;
+        public const int MAX_PIECES_PER_LINE = 8;
+        public const int MAX_LINES = 12;
         private const int INITIAL_LINE_AMOUNT = 5;
         private const int MIN_AMOUNT_TO_BREAK = 3;
+
         public List<PiecesLine> lines = new List<PiecesLine>();
+
+        private GameEngine mGameEngine;
 
         public override string ToString()
         {
@@ -27,8 +30,10 @@ namespace BAMEngine
             return boardText;
         }
 
-        public Board()
+        public Board(GameEngine engine)
         {
+            mGameEngine = engine;
+
             CreateBoard();
         }
 
@@ -40,8 +45,9 @@ namespace BAMEngine
                 var lineAmount = MAX_PIECES_PER_LINE - (line.IsShortLine ? 1 : 0);
                 for (var j = 0; j < lineAmount; j++)
                 {
-                    var pieceToAdd = i < INITIAL_LINE_AMOUNT ? NormalPiece.GetRandom() : null;
+                    var pieceToAdd = i < INITIAL_LINE_AMOUNT || mGameEngine.DEBUG ? NormalPiece.GetRandom() : null;
                     pieceToAdd?.UpdatePosition(line, j);
+                    pieceToAdd?.Lock();
                     line.Add(pieceToAdd);
                 }
 
@@ -72,13 +78,13 @@ namespace BAMEngine
             Piece outPiece = null;
             var lineIndex = piece.Line.Index;
             //UP RIGHT/LEFT
-            if (TryGetPiece(lineIndex + 1, piece.Index + (piece.Line.IsShortLine ? 1 : -1), out outPiece))
+            if (TryGetPiece(lineIndex - 1, piece.Index + (piece.Line.IsShortLine ? 1 : -1), out outPiece))
             {
                 connections.Add(outPiece);
                 holdConnections.Add(outPiece);
             }
             //UP
-            if (TryGetPiece(lineIndex + 1, piece.Index, out outPiece))
+            if (TryGetPiece(lineIndex - 1, piece.Index, out outPiece))
             {
                 connections.Add(outPiece);
                 holdConnections.Add(outPiece);
@@ -96,20 +102,25 @@ namespace BAMEngine
                 holdConnections.Add(outPiece);
             }
             //DOWN
-            if (TryGetPiece(lineIndex - 1, piece.Index, out outPiece))
+            if (TryGetPiece(lineIndex + 1, piece.Index, out outPiece))
                 connections.Add(outPiece);
             //DOWN RIGHT/LEFT
-            if (TryGetPiece(lineIndex - 1, piece.Index + (piece.Line.IsShortLine ? 1 : -1), out outPiece))
+            if (TryGetPiece(lineIndex + 1, piece.Index + (piece.Line.IsShortLine ? 1 : -1), out outPiece))
                 connections.Add(outPiece);
 
             piece.UpdateConnections(connections, holdConnections);
         }
 
-        internal void PlacePiece(Piece piece, int lineIndex, int positionIndex)
+        internal void UpdatePiecePosition(Piece piece, int lineIndex, int positionIndex)
         {
-            Debug.LogWarning($"Pacing piece: {lineIndex} {positionIndex}");
+            lines[piece.Line.Index][piece.Index] = null;
             lines[lineIndex][positionIndex] = piece;
             piece.UpdatePosition(lines[lineIndex], positionIndex);
+        }
+
+        internal void LockPiece(Piece piece)
+        {
+            piece.Lock();
 
             RefreshPieceConnections(piece);
             foreach (var pieceConnection in piece.Connections)
@@ -144,9 +155,11 @@ namespace BAMEngine
 
                 for (var j = 0; j < lines[i].Count; j++)
                 {
-                    if(lines[i][j] == null) continue;
-                    if (lines[i][j].HoldConnections.Count == 0)
-                        RecursiveFall((NormalPiece) lines[i][j]);
+                    var piece = (NormalPiece)lines[i][j];
+                    if (piece == null) continue;
+                    if (piece.HoldConnections.Count == 0)
+                        RecursiveFall(piece);
+                        //RemoveNormalPiece(piece, piece.Fall);
                 }
             }
         }
@@ -156,7 +169,7 @@ namespace BAMEngine
             RemoveNormalPiece(piece, piece.Fall);
             foreach (var pieceConnection in piece.Connections)
             {
-                if(!pieceConnection.isFalling)
+                if(pieceConnection.isActive)
                     RecursiveFall((NormalPiece)pieceConnection);
             }
         }
@@ -199,7 +212,7 @@ namespace BAMEngine
             return pieceExists;
         }
 
-        private void Dump()
+        public void Dump()
         {
             Debug.Log(ToString());
         }

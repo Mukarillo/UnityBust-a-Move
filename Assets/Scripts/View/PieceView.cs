@@ -1,24 +1,25 @@
 ﻿using UnityEngine;
 using BAMEngine;
-using System;
 
 public class PieceView : MonoBehaviour
 {
-    private const float SPEED = 0.15f;
+    private const float SPEED = 0.4f;
 
     public Piece piece { get; private set; }
 
     private SpriteRenderer mSpriteRenderer;
     private bool mIsMoving = false;
     private Vector3 mMovingDirection;
+    private BoardView mBoardView;
 
     private void Awake()
     {
         mSpriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    public void Initiate(Piece piece)
+    public void Initiate(BoardView boardView, Piece piece)
     {
+        mBoardView = boardView;
         this.piece = piece;
 
         piece.OnFallCallback = OnFall;
@@ -38,19 +39,11 @@ public class PieceView : MonoBehaviour
 
     private void SnapPiece()
     {
-        Debug.Log(transform.position);
-        var line = Mathf.FloorToInt(transform.position.y);
-        var shortLine = IsShortLine(line);
-        var position = Mathf.Clamp(Mathf.Floor(transform.position.x), 0, shortLine ? 6 : 7) + (shortLine ? 0.5f : 0f);
-        transform.position = new Vector3(position, line, 0);
-        
-        Debug.Log(line + " " + Mathf.Abs(line) + " ||| " + position + " " + Mathf.FloorToInt(position));
-        GameView.Instance.PlacePieceOnBoard(this, Mathf.Abs(line), Mathf.FloorToInt(position));
-    }
+        mIsMoving = false;
 
-    private bool IsShortLine(int index)
-    {
-        return index % 2 != 0;
+        transform.position = BoardUtils.GetClampedPosition(transform.position);
+        var lineAndPos = BoardUtils.GetLineAndPosition(transform.position);
+        mBoardView.gameView.PlacePieceOnBoard(this, lineAndPos.y, lineAndPos.x);
     }
 
     private void OnBreak()
@@ -69,22 +62,52 @@ public class PieceView : MonoBehaviour
             return;
 
         transform.position = transform.position + (mMovingDirection * SPEED);
+        var lp = BoardUtils.GetLineAndPosition(transform.position);
+        mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, lp.y, lp.x);
+
+        Predict();
+    }
+
+    private void Predict()
+    {
+        var futurePosition = transform.position + (mMovingDirection * 1.25f);
+        var boardPosition = BoardUtils.GetLineAndPosition(futurePosition);
+
+        mBoardView.gameView.Dump();
+
+        var p = mBoardView.gameView.GetPieceOnBoard(boardPosition.y, boardPosition.x);
+        if (p != null)
+            SnapPiece();
+    }
+
+    private void OnDrawGizmos()
+    {
+        if(mIsMoving)
+        {
+            var futurePosition = transform.position + (mMovingDirection * 1.25f);
+            Gizmos.DrawSphere(futurePosition, 0.1f);
+        }
     }
 
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!mIsMoving) return;
+        mMovingDirection.x *= -1;
+    }
 
-        if (collision.gameObject.GetComponent<PieceView>() != null)
-        {
-            //HITTING A PIECE, WE MUST STOP
-            mIsMoving = false;
-            SnapPiece();
-        }
-        else
-        {
-            //HITTING A WALL, WE MUST INVERT DIRECTION
-            mMovingDirection.x *= -1;
-        }
+    void OnMouseOver()
+    {
+        if(mBoardView.gameView.DEBUG)
+            mBoardView.gameView.HighlightNeighbors(this);
+    }
+
+    void OnMouseExit()
+    {
+        if (mBoardView.gameView.DEBUG)
+            mBoardView.gameView.ResetHighlight();
+    }
+
+    public void Highlight(Color c)
+    {
+        mSpriteRenderer.color = c;
     }
 }

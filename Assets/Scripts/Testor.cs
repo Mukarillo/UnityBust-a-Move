@@ -1,4 +1,5 @@
-﻿using BAMEngine;
+﻿using System;
+using BAMEngine;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,7 +7,7 @@ namespace Assets.Scripts
 {
     public class Testor : MonoBehaviour
     {
-        public Board board;
+        public GameEngine engine;
 
         public InputField lineInput;
         public InputField indexInput;
@@ -14,12 +15,18 @@ namespace Assets.Scripts
 
         public void Start()
         {
-            board = new Board();
+            engine = new GameEngine(OnCreateNextPiece);
+
+        }
+
+        private void OnCreateNextPiece()
+        {
+
         }
 
         public void Execute()
         {
-            board.PlacePiece(new NormalPiece((NormalPiece.PieceType)int.Parse(typeInput.text)), int.Parse(lineInput.text), int.Parse(indexInput.text));
+            //board.LockPiece(new NormalPiece((NormalPiece.PieceType)int.Parse(typeInput.text)), int.Parse(lineInput.text), int.Parse(indexInput.text));
         }
     }
 }

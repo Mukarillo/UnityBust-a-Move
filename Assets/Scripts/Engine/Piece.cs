@@ -15,10 +15,19 @@ namespace BAMEngine
         public Action OnBreakCallback;
         public Action OnFallCallback;
 
+        public bool isActive => !isFalling && !isBreaking;
         public bool isFalling { get; protected set; }
+        public bool isBreaking { get; protected set; }
+        public bool isLocked { get; protected set; }
+
+        public void Lock()
+        {
+            isLocked = true;
+        }
 
         internal virtual void Break()
         {
+            isBreaking = true;
             OnBreakCallback?.Invoke();
         }
 

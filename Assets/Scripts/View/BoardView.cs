@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
 using BAMEngine;
+using System.Linq;
 using System.Collections.Generic;
 
 public class BoardView : MonoBehaviour
 {
     public Board board { get; private set; }
+    public List<PieceView> viewPieces { get; private set; } = new List<PieceView>();
+    public GameView gameView { get; private set; }
 
-    private List<PieceView> mViewPieces = new List<PieceView>();
-
-    private void Start()
+    public void Initiate(GameView gameView)
     {
-        board = GameView.Instance.gameEngine.board;
+        this.gameView = gameView;
+        board = gameView.gameEngine.board;
         DrawBoard();
     }
 
@@ -22,15 +24,25 @@ public class BoardView : MonoBehaviour
             for (int j = 0; j < line.Count; j++)
             {
                 if (line[j] == null) continue;
-                var piece = GameObject.Instantiate(GameView.Instance.piecePrefab, new Vector3(j + (line.IsShortLine ? 0.5f : 0f), -i, 0f), Quaternion.identity).AddComponent<PieceView>();
-                piece.Initiate(line[j]);
-                mViewPieces.Add(piece);
+                var piece = GameObject.Instantiate(gameView.piecePrefab, new Vector3(j + (line.IsShortLine ? 0.5f : 0f), -i, 0f), Quaternion.identity).AddComponent<PieceView>();
+                piece.Initiate(this, line[j]);
+                viewPieces.Add(piece);
             }
         }
     }
 
-    public void PlacePiece(PieceView piece, int line, int position)
+    public PieceView GetPiece(Piece piece)
     {
-        mViewPieces.Add(piece);
+        return GetPiece(piece.Line.Index, piece.Index);
+    }
+
+    public PieceView GetPiece(int line, int position)
+    {
+        return viewPieces.FirstOrDefault(x => x.piece.Line.Index == line && x.piece.Index == position);
+    }
+
+    public void PlacePiece(PieceView piece)
+    {
+        viewPieces.Add(piece);
     }
 }
