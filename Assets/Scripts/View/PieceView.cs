@@ -41,18 +41,22 @@ public class PieceView : MonoBehaviour
     {
         mIsMoving = false;
 
-        transform.position = BoardUtils.GetClampedPosition(transform.position);
-        var lineAndPos = BoardUtils.GetLineAndPosition(transform.position);
-        mBoardView.gameView.PlacePieceOnBoard(this, lineAndPos.y, lineAndPos.x);
+        var p = BoardUtils.GetLineAndPosition(transform.position);
+        Debug.Log(p + " " + mBoardView.gameView.GetPieceOnBoard(p.y, p.x));
+        var lp = BoardUtils.GetLineAndPosition(transform.position);
+        transform.position = new Vector3(lp.x + (BoardUtils.IsShortLine(lp.y) ? 0.5f : 0), -lp.y);
+        mBoardView.gameView.PlacePiece(this, lp.y, lp.x);
     }
 
     private void OnBreak()
     {
+        mBoardView.RemovePiece(this);
         Destroy(gameObject);
     }
 
     private void OnFall()
     {
+        mBoardView.RemovePiece(this);
         Destroy(gameObject);
     }
 
@@ -70,21 +74,25 @@ public class PieceView : MonoBehaviour
 
     private void Predict()
     {
-        var futurePosition = transform.position + (mMovingDirection * 1.25f);
-        var boardPosition = BoardUtils.GetLineAndPosition(futurePosition);
+        for (int i = 0; i < 5; i++)
+        {
+            var futurePosition = transform.position + (mMovingDirection * (1f + (0.1f * i)));
+            var boardPosition = BoardUtils.GetLineAndPosition(futurePosition);
 
-        mBoardView.gameView.Dump();
-
-        var p = mBoardView.gameView.GetPieceOnBoard(boardPosition.y, boardPosition.x);
-        if (p != null)
-            SnapPiece();
+            var p = mBoardView.gameView.GetPieceOnBoard(boardPosition.y, boardPosition.x);
+            if (p != null)
+            {
+                SnapPiece();
+                break;
+            }
+        }
     }
 
     private void OnDrawGizmos()
     {
         if(mIsMoving)
         {
-            var futurePosition = transform.position + (mMovingDirection * 1.25f);
+            var futurePosition = transform.position + (mMovingDirection * 1.5f);
             Gizmos.DrawSphere(futurePosition, 0.1f);
         }
     }

@@ -3,7 +3,7 @@ using BAMEngine;
 
 public class GameView : MonoBehaviour
 {
-    public bool DEBUG { get; private set; } = true;
+    public bool DEBUG { get; private set; } = false;
 
     public GameObject piecePrefab;
     public GameEngine gameEngine { get;private set; }
@@ -23,10 +23,15 @@ public class GameView : MonoBehaviour
         CreateNextPiece();
     }
 
-    public void PlacePieceOnBoard(PieceView piece, int lineIndex, int positionIndex)
+    public void PlacePiece(PieceView piece, int lineIndex, int positionIndex)
     {
         gameEngine.LockPiece(piece.piece);
         mBoardView.PlacePiece(piece);
+    }
+
+    public void RemovePiece(PieceView piece)
+    {
+        mBoardView.RemovePiece(piece);
     }
 
     public PieceView GetPieceOnBoard(int line, int position)
@@ -74,7 +79,6 @@ public class GameView : MonoBehaviour
         {
             oldPiece?.Highlight(Color.white);
             var lp = BoardUtils.GetLineAndPosition(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            Debug.Log(lp);
             oldPiece = mBoardView.GetPiece(lp.y, lp.x);
             oldPiece.Highlight(Color.green);
         }

@@ -5,10 +5,10 @@ public class BoardUtils
 {
     public static Vector3 GetClampedPosition(Vector3 position)
     {
-        var y = Mathf.Clamp(Mathf.FloorToInt(position.y), -(Board.MAX_LINES - 1), 0);
-        Debug.Log(y);
+        var y = Mathf.Clamp(Mathf.RoundToInt(position.y), -(Board.MAX_LINES - 1), 0);
         var shortLine = IsShortLine(y);
-        var x = Mathf.Clamp(Mathf.Floor(position.x), 0, shortLine ? 6 : 7) + (shortLine ? 0.5f : 0f);
+        var pos = Mathf.FloorToInt(position.x + (shortLine ? 0 : 0.5f));
+        var x = Mathf.Clamp(pos, 0, shortLine ? 6 : 7);
 
         return new Vector3(x, y, 0);
     }

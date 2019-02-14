@@ -45,4 +45,9 @@ public class BoardView : MonoBehaviour
     {
         viewPieces.Add(piece);
     }
+
+    public void RemovePiece(PieceView piece)
+    {
+        viewPieces.Remove(piece);
+    }
 }

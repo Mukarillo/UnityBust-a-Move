@@ -3,7 +3,7 @@ using BAMEngine;
 
 public class PiecesController : MonoBehaviour
 {
-    private bool DEBUG = true;
+    private bool DEBUG = false;
 
     public static PiecesController Instance;
     public Sprite[] ballsSprite;
