@@ -45,7 +45,7 @@ namespace BAMEngine
                 var lineAmount = MAX_PIECES_PER_LINE - (line.IsShortLine ? 1 : 0);
                 for (var j = 0; j < lineAmount; j++)
                 {
-                    var pieceToAdd = i < INITIAL_LINE_AMOUNT || mGameEngine.DEBUG ? NormalPiece.GetRandom() : null;
+                    var pieceToAdd = i < INITIAL_LINE_AMOUNT ? NormalPiece.GetRandom() : null;
                     pieceToAdd?.UpdatePosition(line, j);
                     pieceToAdd?.Lock();
                     line.Add(pieceToAdd);
@@ -142,8 +142,6 @@ namespace BAMEngine
                     RemoveNormalPiece(p, p.Break);
                 CheckFallingPieces();
             }
-
-            Dump();
         }
 
         private void CheckFallingPieces()
@@ -159,7 +157,6 @@ namespace BAMEngine
                     if (piece == null) continue;
                     if (piece.HoldConnections.Count == 0)
                         RecursiveFall(piece);
-                        //RemoveNormalPiece(piece, piece.Fall);
                 }
             }
         }

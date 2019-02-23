@@ -41,7 +41,7 @@ public class BoardView : MonoBehaviour
         return viewPieces.FirstOrDefault(x => x.piece.Line.Index == line && x.piece.Index == position);
     }
 
-    public void PlacePiece(PieceView piece)
+    public void LockPiece(PieceView piece)
     {
         viewPieces.Add(piece);
     }

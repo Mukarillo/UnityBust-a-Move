@@ -3,7 +3,7 @@ namespace BAMEngine
 {
     public class GameEngine
     {
-        public bool DEBUG { get; private set; } = false;
+        public bool DEBUG { get; private set; } = true;
 
         public Board board { get; private set; }
 
