@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using BAMEngine;
-using System;
+using pooling;
 
 public class GameView : MonoBehaviour
 {
@@ -8,7 +8,8 @@ public class GameView : MonoBehaviour
 
     public GameObject piecePrefab;
     public GameObject aimArrow;
-    public GameEngine gameEngine { get;private set; }
+    public GameEngine gameEngine { get; private set; }
+    public Pooling<PieceView> piecesPool { get; private set; } = new Pooling<PieceView>();
 
     private BoardView mBoardView;
     private PieceView mCurrentPiece;
@@ -18,7 +19,11 @@ public class GameView : MonoBehaviour
     private void Awake()
     {
         gameEngine = new GameEngine(CreateNextPiece);
-        mBoardView = gameObject.AddComponent<BoardView>();
+        GameObject board = new GameObject("board");
+        board.transform.position = new Vector3(0f, 0.9f, 0f);
+        mBoardView = board.AddComponent<BoardView>();
+
+        piecesPool.Initialize(50, piecePrefab, mBoardView.transform);
     }
 
     private void Start()
@@ -31,8 +36,8 @@ public class GameView : MonoBehaviour
 
     public void LockPiece(PieceView piece)
     {
-        gameEngine.LockPiece(piece.piece);
         mBoardView.LockPiece(piece);
+        gameEngine.LockPiece(piece.piece);
     }
 
     public void RemovePiece(PieceView piece)
@@ -47,55 +52,14 @@ public class GameView : MonoBehaviour
 
     private void CreateNextPiece()
     {
-        mCurrentPiece = GameObject.Instantiate(piecePrefab, mBallSpawnPoint, Quaternion.identity).AddComponent<PieceView>();
+        mCurrentPiece = piecesPool.Collect();
+        mCurrentPiece.transform.localPosition = mBallSpawnPoint;
         mCurrentPiece.Initiate(mBoardView, gameEngine.GetNextPiece());
-    }
-
-    public void HighlightNeighbors(PieceView piece)
-    { 
-        foreach(var p in piece.piece.Connections)
-        {
-            var vp = mBoardView.GetPiece(p);
-            vp.Highlight(Color.black);
-        }
-
-        var c = Color.black;
-        c.a = 0.2f;
-        foreach (var p in piece.piece.HoldConnections)
-        {
-            var vp = mBoardView.GetPiece(p);
-            vp.Highlight(c);
-        }
-    }
-
-    public void ResetHighlight()
-    {
-        mBoardView.viewPieces.ForEach(x => x.Highlight(Color.white));
     }
 
     private void OnShoot(Vector2 direction)
     {
         mCurrentPiece.Shoot(direction);
-    }
-
-    PieceView oldPiece;
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            var dir = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - mCurrentPiece.transform.position).normalized;
-            dir.z = 0f;
-        }
-
-        DEBUG = Input.GetKey(KeyCode.B);
-
-        if (DEBUG)
-        {
-            oldPiece?.Highlight(Color.white);
-            var lp = BoardUtils.GetLineAndPosition(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            oldPiece = mBoardView.GetPiece(lp.y, lp.x);
-            oldPiece?.Highlight(Color.clear);
-        }
     }
 
     public void Dump()

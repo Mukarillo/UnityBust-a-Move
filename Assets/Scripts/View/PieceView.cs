@@ -1,20 +1,23 @@
 ﻿using UnityEngine;
 using BAMEngine;
+using pooling;
 
-public class PieceView : MonoBehaviour
+public class PieceView : PoolingObject
 {
     private const float SPEED = 0.4f;
 
     public Piece piece { get; private set; }
 
-    private SpriteRenderer mSpriteRenderer;
     private bool mIsMoving = false;
     private Vector3 mMovingDirection;
     private BoardView mBoardView;
 
     private void Awake()
     {
-        mSpriteRenderer = GetComponent<SpriteRenderer>();
+        gameObject.AddComponent<SequenceAnimation2D>().Initiate(AssetController.ME.EyeAnimation, Random.Range(0, AssetController.ME.EyeAnimation.Length), Random.Range(8, 16));
+        GameObject glow = new GameObject("Glow");
+        glow.transform.SetParent(transform);
+        glow.AddComponent<PieceGlow>().Initiate(Random.Range(3f, 30f));
     }
 
     public void Initiate(BoardView boardView, Piece piece)
@@ -22,13 +25,11 @@ public class PieceView : MonoBehaviour
         mBoardView = boardView;
         this.piece = piece;
 
-        piece.OnFallCallback = OnFall;
-        piece.OnBreakCallback = OnBreak;
+        piece.OnFallCallback += OnFall;
+        piece.OnBreakCallback += OnBreak;
 
         if(piece is NormalPiece)
-        {
-            mSpriteRenderer.sprite = PiecesController.Instance.GetPieceByType(((NormalPiece)piece).pieceType);
-        }
+            PiecesController.Instance.ApplyColorByType(GetComponent<Renderer>(), ((NormalPiece)piece).pieceType);
     }
 
     public void Shoot(Vector3 direction)
@@ -40,43 +41,66 @@ public class PieceView : MonoBehaviour
     private void SnapPiece(Vector3 otherPiecePosition)
     {
         mIsMoving = false;
-        //TODO: Check if the spot is taken, if it is, than we check opposite direction
-        var snapPosition = otherPiecePosition + (transform.position - otherPiecePosition).normalized;
-        var lp = BoardUtils.GetLineAndPosition(snapPosition);
-        transform.position = new Vector3(lp.x + (BoardUtils.IsShortLine(lp.y) ? 0.5f : 0), -lp.y);
-        mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, lp.y, lp.x);
+        Vector2Int linePos;
+        Vector3 snapPosition;
+        Vector3 finalPosition = transform.localPosition;
+        PieceView otherPiece;
+        int tries = 20;
+        do
+        {
+            tries--;
+            snapPosition = otherPiecePosition + (transform.localPosition - otherPiecePosition).normalized;
+            linePos = BoardUtils.GetLineAndPosition(snapPosition);
+            finalPosition = new Vector3(linePos.x + (BoardUtils.IsShortLine(linePos.y) ? 0.5f : 0), -linePos.y);
+            otherPiece = mBoardView.GetPiece(linePos.y, linePos.x);
+            if (otherPiece != null)
+                otherPiecePosition = otherPiece.transform.localPosition;
+        }
+        while (otherPiece != null && tries >= 0);
+
+        if(tries <= 0)
+        {
+            //TODO: GAME OVER!
+            Debug.Log("Game is Over!");
+        }
+
+        transform.localPosition = finalPosition;
+        mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, linePos.y, linePos.x);
         mBoardView.gameView.LockPiece(this);
 
-        Debug.LogError($"OtherPiecePosition: {otherPiecePosition}\n" +
-            $"Direction: {(transform.position - otherPiecePosition).normalized}" +
-            $"\nSnapPosition: {snapPosition}" +
-            $"\nFinalPosition: {transform.position}" +
-            $"\nBoardPosition: {lp}");
         mBoardView.gameView.Dump();
     }
 
     private void OnBreak()
     {
-        Destroy(gameObject);
+        OnRelease();
     }
 
     private void OnFall()
     {
-        Destroy(gameObject);
+        OnRelease();
     }
 
-    private void OnDestroy()
+    public override void OnRelease()
     {
-        mBoardView.RemovePiece(this);
+        if (piece != null)
+        { 
+            piece.OnFallCallback -= OnFall;
+            piece.OnBreakCallback -= OnBreak;
+            piece = null;
+        }
+
+        mBoardView?.RemovePiece(this);
+        base.OnRelease();
     }
 
     private void Update()
     {
-        if (!mIsMoving)
+        if (!mIsMoving || !isUsing)
             return;
 
-        transform.position += mMovingDirection * SPEED;
-        var lp = BoardUtils.GetLineAndPosition(transform.position);
+        transform.localPosition += mMovingDirection * SPEED;
+        var lp = BoardUtils.GetLineAndPosition(transform.localPosition);
         mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, lp.y, lp.x);
 
         Predict();
@@ -86,13 +110,13 @@ public class PieceView : MonoBehaviour
     {
         for (int i = 0; i < 5; i++)
         {
-            var futurePosition = transform.position + (mMovingDirection * (0.8f + (i/5f)));
+            var futurePosition = transform.localPosition + (mMovingDirection * (0.8f + (i/5f)));
             var boardPosition = BoardUtils.GetLineAndPosition(futurePosition);
 
             var p = mBoardView.gameView.GetPieceOnBoard(boardPosition.y, boardPosition.x);
             if (p != null)
             {
-                SnapPiece(p.transform.position);
+                SnapPiece(p.transform.localPosition);
                 break;
             }
         }
@@ -101,28 +125,8 @@ public class PieceView : MonoBehaviour
     public void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.tag == "Roof")
-            SnapPiece(collision.bounds.ClosestPoint(transform.position));
+            SnapPiece(collision.bounds.ClosestPoint(transform.localPosition));
         else
             mMovingDirection.x *= -1;
-    }
-
-    void OnMouseOver()
-    {
-        if(mBoardView.gameView.DEBUG)
-            mBoardView.gameView.HighlightNeighbors(this);
-    }
-
-    void OnMouseExit()
-    {
-        if (mBoardView.gameView.DEBUG)
-            mBoardView.gameView.ResetHighlight();
-    }
-
-    public void Highlight(Color c)
-    {
-        if (mSpriteRenderer == null)
-            Debug.Log("NULL RENDERER", gameObject);
-        else
-            mSpriteRenderer.color = c;
     }
 }

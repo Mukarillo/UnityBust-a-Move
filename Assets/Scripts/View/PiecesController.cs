@@ -3,19 +3,20 @@ using BAMEngine;
 
 public class PiecesController : MonoBehaviour
 {
-    private bool DEBUG = false;
-
     public static PiecesController Instance;
-    public Sprite[] ballsSprite;
-    public Sprite whiteSprite;
-
-    private void Awake()
+    public Color[] colors;
+    private MaterialPropertyBlock mPropBlock;
+ 
+    void Awake()
     {
+        mPropBlock = new MaterialPropertyBlock();
         Instance = this;
     }
 
-    public Sprite GetPieceByType(NormalPiece.PieceType pieceType)
+    public void ApplyColorByType(Renderer renderer, NormalPiece.PieceType pieceType)
     {
-        return DEBUG ? whiteSprite : ballsSprite[(int)pieceType];
+        renderer.GetPropertyBlock(mPropBlock);
+        mPropBlock.SetColor("_Color", colors[(int)pieceType]);
+        renderer.SetPropertyBlock(mPropBlock);
     }
 }

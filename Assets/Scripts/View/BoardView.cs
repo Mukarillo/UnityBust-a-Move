@@ -24,7 +24,8 @@ public class BoardView : MonoBehaviour
             for (int j = 0; j < line.Count; j++)
             {
                 if (line[j] == null) continue;
-                var piece = GameObject.Instantiate(gameView.piecePrefab, new Vector3(j + (line.IsShortLine ? 0.5f : 0f), -i, 0f), Quaternion.identity).AddComponent<PieceView>();
+                var piece = gameView.piecesPool.Collect();
+                piece.transform.localPosition = new Vector3(j + (line.IsShortLine ? 0.5f : 0f), -i, 0f);
                 piece.Initiate(this, line[j]);
                 viewPieces.Add(piece);
             }
@@ -43,11 +44,13 @@ public class BoardView : MonoBehaviour
 
     public void LockPiece(PieceView piece)
     {
+        Debug.LogWarning("ADDING: " + piece.name);
         viewPieces.Add(piece);
     }
 
     public void RemovePiece(PieceView piece)
     {
+        Debug.LogWarning("REMOVING: " + piece.name);
         viewPieces.Remove(piece);
     }
 }
