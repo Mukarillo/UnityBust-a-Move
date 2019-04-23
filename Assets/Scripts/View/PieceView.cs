@@ -1,19 +1,26 @@
 ﻿using UnityEngine;
 using BAMEngine;
 using pooling;
+using DG.Tweening;
 
 public class PieceView : PoolingObject
 {
     private const float SPEED = 0.4f;
+
+    private const float TIME_TO_OUT = 1f;
+    private const float MIN_OUT_SCALE = 8f;
+    private const float MAX_OUT_SCALE = 15f;
 
     public Piece piece { get; private set; }
 
     private bool mIsMoving = false;
     private Vector3 mMovingDirection;
     private BoardView mBoardView;
+    private SpriteRenderer mSpriteRenderer;
 
     private void Awake()
     {
+        mSpriteRenderer = GetComponent<SpriteRenderer>();
         gameObject.AddComponent<SequenceAnimation2D>().Initiate(AssetController.ME.EyeAnimation, Random.Range(0, AssetController.ME.EyeAnimation.Length), Random.Range(8, 16));
         GameObject glow = new GameObject("Glow");
         glow.transform.SetParent(transform);
@@ -22,6 +29,9 @@ public class PieceView : PoolingObject
 
     public void Initiate(BoardView boardView, Piece piece)
     {
+        mSpriteRenderer.sortingOrder = 20;
+        transform.localScale = Vector3.one * 4f;
+
         mBoardView = boardView;
         this.piece = piece;
 
@@ -73,12 +83,31 @@ public class PieceView : PoolingObject
 
     private void OnBreak()
     {
-        OnRelease();
+        AnimateOut();
     }
 
     private void OnFall()
     {
-        OnRelease();
+        AnimateOut();
+    }
+
+    private void AnimateOut()
+    {
+        mSpriteRenderer.sortingOrder = 30;
+        mIsMoving = false;
+
+        var initialPos = transform.localPosition;
+        var xAmount = Random.Range(-6f, 6f);
+        var finalPos = new Vector3(initialPos.x + xAmount, -25f, 0f);
+        var midPos = new Vector3(initialPos.x + xAmount / 2f, initialPos.y + 3f, 0f);
+
+        DOTween.Sequence()
+        .Join(transform.DOScale(Random.Range(MIN_OUT_SCALE, MAX_OUT_SCALE), TIME_TO_OUT))
+        .Join(transform.DOLocalMoveX(midPos.x, TIME_TO_OUT / 3f).SetEase(Ease.InQuad))
+        .Join(transform.DOLocalMoveY(midPos.y, TIME_TO_OUT / 3f).SetEase(Ease.OutQuad))
+        .Insert(TIME_TO_OUT / 3f, transform.DOLocalMoveX(finalPos.x, (TIME_TO_OUT / 3f) * 2f).SetEase(Ease.OutQuad))
+        .Insert(TIME_TO_OUT / 3f, transform.DOLocalMoveY(finalPos.y, (TIME_TO_OUT / 3f) * 2f).SetEase(Ease.InQuad))
+        .OnComplete(OnRelease);
     }
 
     public override void OnRelease()
@@ -124,6 +153,9 @@ public class PieceView : PoolingObject
 
     public void OnTriggerEnter2D(Collider2D collision)
     {
+        if (!mIsMoving || !isUsing)
+            return;
+
         if (collision.tag == "Roof")
             SnapPiece(collision.bounds.ClosestPoint(transform.localPosition));
         else
