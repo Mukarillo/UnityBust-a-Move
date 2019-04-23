@@ -2,6 +2,7 @@
 using BAMEngine;
 using System.Linq;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class BoardView : MonoBehaviour
 {
@@ -29,6 +30,14 @@ public class BoardView : MonoBehaviour
                 piece.Initiate(this, line[j]);
                 viewPieces.Add(piece);
             }
+        }
+    }
+
+    public void StepDown(float timeToDown)
+    {
+        foreach (var p in viewPieces)
+        {
+            p.transform.DOLocalMoveY(p.transform.localPosition.y - 1f, timeToDown).SetEase(Ease.OutBounce);
         }
     }
 

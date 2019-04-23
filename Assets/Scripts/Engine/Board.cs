@@ -14,6 +14,7 @@ namespace BAMEngine
         public List<PiecesLine> lines = new List<PiecesLine>();
 
         private GameEngine mGameEngine;
+        private int mCurrentStep = 0;
 
         public override string ToString()
         {
@@ -35,6 +36,23 @@ namespace BAMEngine
             mGameEngine = engine;
 
             CreateBoard();
+        }
+
+        public void StepDown()
+        {
+            //CHANGE THIS
+            lines.Insert(mCurrentStep, new PiecesLine(mCurrentStep));
+            if(lines[lines.Count - 1].HasPiece)
+            {
+                mGameEngine.GameOver();
+                return;
+            }
+            lines.RemoveAt(lines.Count - 1);
+
+            for (int i = mCurrentStep; i < lines.Count; i++)
+                lines[i].StepDown();
+
+            mCurrentStep++;
         }
 
         private void CreateBoard()

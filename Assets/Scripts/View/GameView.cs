@@ -1,14 +1,18 @@
 ﻿using UnityEngine;
 using BAMEngine;
 using pooling;
+using DG.Tweening;
 
 public class GameView : MonoBehaviour
 {
+    private const float TIME_TO_ROOF_DOWN = 0.3f;
+
     public bool DEBUG { get; private set; } = true;
 
     public GameObject piecePrefab;
     public GameObject aimArrow;
     public GameObject chainRef;
+    public GameObject roofRef;
     public GameEngine gameEngine { get; private set; }
     public Pooling<PieceView> piecesPool { get; private set; } = new Pooling<PieceView>();
 
@@ -20,7 +24,7 @@ public class GameView : MonoBehaviour
 
     private void Awake()
     {
-        gameEngine = new GameEngine(CreateNextPiece);
+        gameEngine = new GameEngine(CreateNextPiece, StepDown, GameOver);
         GameObject board = new GameObject("board");
         board.transform.position = new Vector3(0f, 0.9f, 0f);
         mBoardView = board.AddComponent<BoardView>();
@@ -56,6 +60,19 @@ public class GameView : MonoBehaviour
     private void CreateNextPiece()
     {
         mCurrentPiece = mChain.GetPiece();
+    }
+
+    private void StepDown()
+    {
+        roofRef.transform.DOLocalMoveY(roofRef.transform.localPosition.y - 0.3f, TIME_TO_ROOF_DOWN).SetEase(Ease.OutBounce);
+        mBoardView.StepDown(TIME_TO_ROOF_DOWN);
+
+        gameEngine.board.Dump();
+    }
+
+    private void GameOver()
+    {
+        //TODO
     }
 
     public PieceView GetFuturePiece()
