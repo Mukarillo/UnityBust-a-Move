@@ -68,7 +68,7 @@ public class PieceView : PoolingObject
         mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, linePos.y, linePos.x);
         mBoardView.gameView.LockPiece(this);
 
-        mBoardView.gameView.Dump();
+        //mBoardView.gameView.Dump();
     }
 
     private void OnBreak()

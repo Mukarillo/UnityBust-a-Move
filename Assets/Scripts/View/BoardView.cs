@@ -44,13 +44,11 @@ public class BoardView : MonoBehaviour
 
     public void LockPiece(PieceView piece)
     {
-        Debug.LogWarning("ADDING: " + piece.name);
         viewPieces.Add(piece);
     }
 
     public void RemovePiece(PieceView piece)
     {
-        Debug.LogWarning("REMOVING: " + piece.name);
         viewPieces.Remove(piece);
     }
 }
