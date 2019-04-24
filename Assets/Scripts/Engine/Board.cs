@@ -11,10 +11,10 @@ namespace BAMEngine
         private const int INITIAL_LINE_AMOUNT = 5;
         private const int MIN_AMOUNT_TO_BREAK = 3;
 
-        public List<PiecesLine> lines = new List<PiecesLine>();
+        public List<PiecesLine> lines { get; private set; } = new List<PiecesLine>();
+        public int CurrentStep { get; private set; }
 
         private GameEngine mGameEngine;
-        private int mCurrentStep = 0;
 
         public override string ToString()
         {
@@ -40,27 +40,25 @@ namespace BAMEngine
 
         public void StepDown()
         {
-            //CHANGE THIS
-            lines.Insert(mCurrentStep, new PiecesLine(mCurrentStep));
-            if(lines[lines.Count - 1].HasPiece)
-            {
-                mGameEngine.GameOver();
-                return;
-            }
-            lines.RemoveAt(lines.Count - 1);
+            CurrentStep++;
 
-            for (int i = mCurrentStep; i < lines.Count; i++)
+            for (int i = lines.Count - 1; i >= 0; i--)
                 lines[i].StepDown();
 
-            mCurrentStep++;
+            if (lines[lines.Count - CurrentStep].HasPiece)
+                mGameEngine.GameOver();
+
+            lines.Insert(0, PiecesLine.EmptyLine(0, MAX_PIECES_PER_LINE));
+            lines.RemoveAt(lines.Count - 1);
         }
 
         private void CreateBoard()
         {
             for (var i = 0; i < MAX_LINES; i++)
             {
-                var line = new PiecesLine(i);
+                var line = new PiecesLine(i, (i % 2 != 0), i == 0);
                 var lineAmount = MAX_PIECES_PER_LINE - (line.IsShortLine ? 1 : 0);
+
                 for (var j = 0; j < lineAmount; j++)
                 {
                     var pieceToAdd = i < INITIAL_LINE_AMOUNT ? NormalPiece.GetRandom() : null;
@@ -166,7 +164,7 @@ namespace BAMEngine
         {
             for (var i = 0; i < lines.Count; i++)
             {
-                if(!lines[i].CanFall)
+                if(!lines[i].IsRoof)
                     continue;
 
                 for (var j = 0; j < lines[i].Count; j++)

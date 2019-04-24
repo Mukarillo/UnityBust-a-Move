@@ -12,8 +12,8 @@ public class PieceView : PoolingObject
     private const float MAX_OUT_SCALE = 15f;
 
     public Piece piece { get; private set; }
+    public bool IsMoving { get; private set; }
 
-    private bool mIsMoving = false;
     private Vector3 mMovingDirection;
     private BoardView mBoardView;
     private SpriteRenderer mSpriteRenderer;
@@ -44,13 +44,13 @@ public class PieceView : PoolingObject
 
     public void Shoot(Vector3 direction)
     {
-        mIsMoving = true;
+        IsMoving = true;
         mMovingDirection = direction;
     }
 
     private void SnapPiece(Vector3 otherPiecePosition)
     {
-        mIsMoving = false;
+        IsMoving = false;
         Vector2Int linePos;
         Vector3 snapPosition;
         Vector3 finalPosition = transform.localPosition;
@@ -60,8 +60,8 @@ public class PieceView : PoolingObject
         {
             tries--;
             snapPosition = otherPiecePosition + (transform.localPosition - otherPiecePosition).normalized;
-            linePos = BoardUtils.GetLineAndPosition(snapPosition);
-            finalPosition = new Vector3(linePos.x + (BoardUtils.IsShortLine(linePos.y) ? 0.5f : 0), -linePos.y);
+            linePos = BoardUtils.GetLineAndPosition(snapPosition, mBoardView.board);
+            finalPosition = new Vector3(linePos.x + (mBoardView.board.lines[linePos.y].IsShortLine ? 0.5f : 0), -linePos.y);
             otherPiece = mBoardView.GetPiece(linePos.y, linePos.x);
             if (otherPiece != null)
                 otherPiecePosition = otherPiece.transform.localPosition;
@@ -78,7 +78,7 @@ public class PieceView : PoolingObject
         mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, linePos.y, linePos.x);
         mBoardView.gameView.LockPiece(this);
 
-        //mBoardView.gameView.Dump();
+        mBoardView.gameView.Dump();
     }
 
     private void OnBreak()
@@ -94,7 +94,7 @@ public class PieceView : PoolingObject
     private void AnimateOut()
     {
         mSpriteRenderer.sortingOrder = 30;
-        mIsMoving = false;
+        IsMoving = false;
 
         var initialPos = transform.localPosition;
         var xAmount = Random.Range(-6f, 6f);
@@ -125,11 +125,11 @@ public class PieceView : PoolingObject
 
     private void Update()
     {
-        if (!mIsMoving || !isUsing)
+        if (!IsMoving || !isUsing)
             return;
 
         transform.localPosition += mMovingDirection * SPEED;
-        var lp = BoardUtils.GetLineAndPosition(transform.localPosition);
+        var lp = BoardUtils.GetLineAndPosition(transform.localPosition, mBoardView.board);
         mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, lp.y, lp.x);
 
         Predict();
@@ -140,7 +140,7 @@ public class PieceView : PoolingObject
         for (int i = 0; i < 5; i++)
         {
             var futurePosition = transform.localPosition + (mMovingDirection * (0.8f + (i/5f)));
-            var boardPosition = BoardUtils.GetLineAndPosition(futurePosition);
+            var boardPosition = BoardUtils.GetLineAndPosition(futurePosition, mBoardView.board);
 
             var p = mBoardView.gameView.GetPieceOnBoard(boardPosition.y, boardPosition.x);
             if (p != null)
@@ -153,7 +153,7 @@ public class PieceView : PoolingObject
 
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!mIsMoving || !isUsing)
+        if (!IsMoving || !isUsing)
             return;
 
         if (collision.tag == "Roof")

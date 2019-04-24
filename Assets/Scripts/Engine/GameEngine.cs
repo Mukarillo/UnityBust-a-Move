@@ -1,33 +1,30 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace BAMEngine
 {
     public class GameEngine
     {
-        private const int TIME_TO_STEP_DOWN = 5;
+        private const int TIME_TO_STEP_DOWN = 10;
         public bool DEBUG { get; private set; } = true;
 
         public Board board { get; private set; }
 
-        private readonly Action onCreateNextPiece;
-        private readonly Action onStepDown;
-        private readonly Action onGameOver;
+        private IGameView mGameView;
 
         private Task mTask;
         private bool mGameOver;
 
-        public GameEngine(Action onCreateNextPiece, Action onStepDown, Action onGameOver)
+        public GameEngine(IGameView gameView)
         {
             MainThread.Initiate();
             MainThread.SetMainThread();
 
             board = new Board(this);
-            this.onCreateNextPiece = onCreateNextPiece;
-            this.onStepDown = onStepDown;
-            this.onGameOver = onGameOver;
 
-            StartCounting();
+            mGameView = gameView;
+
+            if (mGameView.ShouldStepDown)
+                StartCounting();
         }
 
         ~GameEngine()
@@ -40,17 +37,18 @@ namespace BAMEngine
             mTask = Task.Delay(TIME_TO_STEP_DOWN * 1000).ContinueWith(t =>
             {
                 if (!mGameOver)
-                {
-                    StartCounting();
-                    MainThread.Invoke(OnStepDown);
-                }
+                    MainThread.Invoke(StepDown);
             });
         }
 
-        private void OnStepDown()
+        public void StepDown()
         {
-            board.StepDown();
-            onStepDown?.Invoke();
+            if (mGameView.CanStepDown())
+            {
+                board.StepDown();
+                mGameView.OnStepDown();
+                StartCounting();
+            }
         }
 
         public void UpdatePiecePosition(Piece piece, int line, int position)
@@ -61,20 +59,19 @@ namespace BAMEngine
         public void LockPiece(Piece piece)
         {
             board.LockPiece(piece);
-            onCreateNextPiece?.Invoke();
+            mGameView.OnCreateNextPiece();
         }
 
         public Piece GetNextPiece()
         {
             var piece = NormalPiece.GetRandom();
-            piece.UpdatePosition(board.lines[Board.MAX_LINES - 1], (Board.MAX_PIECES_PER_LINE / 2) - 1);
             return piece;
         }
 
         internal void GameOver()
         {
             mGameOver = true;
-            onGameOver?.Invoke();
+            mGameView.OnGameOver();
         }
     }
 }

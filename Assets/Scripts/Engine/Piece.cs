@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using Debug = UnityEngine.Debug;
 
 namespace BAMEngine
 {
