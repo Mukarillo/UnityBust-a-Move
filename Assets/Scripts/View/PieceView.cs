@@ -158,7 +158,7 @@ public class PieceView : PoolingObject
 
         if (collision.tag == "Roof")
             SnapPiece(collision.bounds.ClosestPoint(transform.localPosition));
-        else
+        else if(collision.tag == "Wall")
             mMovingDirection.x *= -1;
     }
 }

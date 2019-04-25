@@ -39,7 +39,7 @@ public class Chain : MonoBehaviour
 
         var piece = mChainBlock[mCurrentBlock].GetPiece();
         piece.transform.SetParent(mBoardView.transform);
-        piece.transform.DOLocalMove(new Vector3(3.5f, -12f, 0f), TIME_TO_MOVE).SetEase(Ease.OutExpo);
+        piece.transform.DOMove(mGameView.BallSpawnPoint, TIME_TO_MOVE).SetEase(Ease.OutExpo);
 
         MoveChain();
 

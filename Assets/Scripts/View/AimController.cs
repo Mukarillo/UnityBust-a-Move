@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 public class AimController : MonoBehaviour
 {
     private const float SPEED = 1f;
-    private const float MIN_ANGLE = 55f;
+    private const float MIN_ANGLE = 70f;
+    private const float GUIDE_LINE_VELOCITY = 0.02f;
     private Vector2 mDirection;
     public Vector2 Direction
     {
@@ -16,16 +18,37 @@ public class AimController : MonoBehaviour
 
             mDirection = value;
             UpdateArrow();
+            UpdateGuideLine();
         }
     }
 
     public float Angle => GetAngle(Direction);
+    private Vector3 finalPos => mCenterPoint + Quaternion.AngleAxis(Angle - 90, Vector3.back) * new Vector3(1, 0, 0);
 
     private Action<Vector2> mOnShoot;
     private Vector3 mCenterPoint;
 
     private bool mIsDragging;
     private Camera mMainCamera;
+    private LineRenderer[] mGuideLines;
+    private Material mGuideMaterial;
+    private Vector2 mGuideLineOffset = new Vector2(0,0);
+
+    private void Awake()
+    {
+        mGuideMaterial = Resources.Load<Material>("Material/GuideLine");
+
+        mGuideLines = new LineRenderer[3];
+        for(int i = 0; i < 3; i++)
+        {
+            mGuideLines[i] = new GameObject("GuideLine").AddComponent<LineRenderer>();
+            mGuideLines[i].material = mGuideMaterial;
+            mGuideLines[i].startWidth = 0.3f;
+            mGuideLines[i].endWidth = 0.3f;
+            mGuideLines[i].textureMode = LineTextureMode.Tile;
+            mGuideLines[i].positionCount = 2;
+        }
+    }
 
     public void Initiate(Vector3 centerPoint, Action<Vector2> onShoot)
     {
@@ -66,6 +89,34 @@ public class AimController : MonoBehaviour
 
         if (mIsDragging)
             Direction = (GetWorldPosition(inputPosition) - mCenterPoint).normalized;
+
+        mGuideLineOffset.x -= GUIDE_LINE_VELOCITY;
+        mGuideMaterial.SetTextureOffset("_MainTex", mGuideLineOffset);
+    }
+
+    private void UpdateGuideLine()
+    {
+        mCurrentIndex = 0;
+        FireGuideLine(new List<Vector3> { mCenterPoint }, mCenterPoint, Direction);
+    }
+
+    int mCurrentIndex = 0;
+    private void FireGuideLine(List<Vector3> positions, Vector3 pos, Vector2 dir)
+    {
+        var col = Physics2D.Raycast(pos + (Vector3)dir, dir, 100f, 1 << 9);
+        positions.Add(col.point);
+        if(positions.Count == 2)
+        {
+            mGuideLines[mCurrentIndex].SetPositions(positions.ToArray());
+            mCurrentIndex++;
+            positions.Add(col.point);
+        }
+
+        if (col.collider.tag == "Wall" && positions.Count < 4)
+        {
+            dir.x *= -1;
+            FireGuideLine(positions, col.point, dir);
+        }
     }
 
     private void EndDrag()
@@ -83,7 +134,7 @@ public class AimController : MonoBehaviour
     private void UpdateArrow()
     {
         transform.rotation = Quaternion.AngleAxis(Angle, Vector3.back);
-        transform.position = mCenterPoint + Quaternion.AngleAxis(Angle - 90, Vector3.back) * new Vector3(2, 0, 0);
+        transform.position = finalPos;
     }
 
     private float GetAngle(Vector2 direction) => Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;

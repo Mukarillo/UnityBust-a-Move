@@ -2,7 +2,6 @@
 using BAMEngine;
 using pooling;
 using DG.Tweening;
-using System;
 using System.Collections;
 
 public class GameView : MonoBehaviour, IGameView
@@ -10,8 +9,9 @@ public class GameView : MonoBehaviour, IGameView
     private const float TIME_TO_ROOF_DOWN = 0.3f;
 
     public bool DEBUG { get; private set; } = true;
+    public readonly Vector3 BallSpawnPoint = new Vector3(3.5f, -11f, 0f);
 
-    public bool ShouldStepDown => true;
+    public bool ShouldStepDown => false;
 
     public GameObject piecePrefab;
     public GameObject aimArrow;
@@ -24,7 +24,6 @@ public class GameView : MonoBehaviour, IGameView
     private PieceView mCurrentPiece;
     private AimController mAimController;
     private Chain mChain;
-    private readonly Vector3 mBallSpawnPoint = new Vector3(3.5f, -13f, 0f);
 
     private void Awake()
     {
@@ -42,7 +41,7 @@ public class GameView : MonoBehaviour, IGameView
         mChain.Initiate(this, mBoardView);
         OnCreateNextPiece();
         mAimController = aimArrow.AddComponent<AimController>();
-        mAimController.Initiate(mBallSpawnPoint, OnShoot);
+        mAimController.Initiate(BallSpawnPoint, OnShoot);
     }
 
     public void LockPiece(PieceView piece)
