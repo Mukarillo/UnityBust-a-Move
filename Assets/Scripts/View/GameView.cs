@@ -18,9 +18,9 @@ public class GameView : MonoBehaviour, IGameView
     public GameObject chainRef;
     public GameObject roofRef;
     public GameEngine gameEngine { get; private set; }
+    public BoardView boardView { get; private set; }
     public Pooling<PieceView> piecesPool { get; private set; } = new Pooling<PieceView>();
 
-    private BoardView mBoardView;
     private PieceView mCurrentPiece;
     private AimController mAimController;
     private Chain mChain;
@@ -30,35 +30,35 @@ public class GameView : MonoBehaviour, IGameView
         gameEngine = new GameEngine(this);
         GameObject board = new GameObject("board");
         board.transform.position = new Vector3(0f, 0.9f, 0f);
-        mBoardView = board.AddComponent<BoardView>();
+        boardView = board.AddComponent<BoardView>();
         mChain = chainRef.AddComponent<Chain>();
-        piecesPool.Initialize(50, piecePrefab, mBoardView.transform);
+        piecesPool.Initialize(50, piecePrefab, boardView.transform);
     }
 
     private void Start()
     {
-        mBoardView.Initiate(this);
-        mChain.Initiate(this, mBoardView);
+        boardView.Initiate(this);
+        mChain.Initiate(this, boardView);
         OnCreateNextPiece();
         mAimController = aimArrow.AddComponent<AimController>();
-        mAimController.Initiate(BallSpawnPoint, OnShoot);
+        mAimController.Initiate(BallSpawnPoint, OnShoot, this);
     }
 
     public void LockPiece(PieceView piece)
     {
-        mBoardView.LockPiece(piece);
+        boardView.LockPiece(piece);
         gameEngine.LockPiece(piece.piece);
         mAimController.UpdateGuideLine();
     }
 
     public void RemovePiece(PieceView piece)
     {
-        mBoardView.RemovePiece(piece);
+        boardView.RemovePiece(piece);
     }
 
     public PieceView GetPieceOnBoard(int line, int position)
     {
-        return mBoardView.GetPiece(line, position);
+        return boardView.GetPiece(line, position);
     }
 
     public void OnCreateNextPiece()
@@ -84,7 +84,7 @@ public class GameView : MonoBehaviour, IGameView
     public void OnStepDown()
     {
         roofRef.transform.DOLocalMoveY(roofRef.transform.localPosition.y - 0.3f, TIME_TO_ROOF_DOWN).SetEase(Ease.OutBounce);
-        mBoardView.StepDown(TIME_TO_ROOF_DOWN);
+        boardView.StepDown(TIME_TO_ROOF_DOWN);
 
         gameEngine.board.Dump();
     }
@@ -97,13 +97,13 @@ public class GameView : MonoBehaviour, IGameView
     public PieceView GetFuturePiece()
     {
         var p = piecesPool.Collect();
-        p.Initiate(mBoardView, gameEngine.GetNextPiece());
+        p.Initiate(boardView, gameEngine.GetNextPiece());
         return p;
     }
 
     private void OnShoot(Vector2 direction)
     {
-        mCurrentPiece.piece.UpdatePosition(mBoardView.board.lines[Board.MAX_LINES - 1], (Board.MAX_PIECES_PER_LINE / 2) - 1);
+        mCurrentPiece.piece.UpdatePosition(boardView.board.lines[Board.MAX_LINES - 1], (Board.MAX_PIECES_PER_LINE / 2) - 1);
         mCurrentPiece.Shoot(direction);
     }
 

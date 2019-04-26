@@ -10,45 +10,62 @@ public class PieceView : PoolingObject
     private const float TIME_TO_OUT = 1f;
     private const float MIN_OUT_SCALE = 8f;
     private const float MAX_OUT_SCALE = 15f;
+    private const float COLLIDER_RADIUS_SHOOTING = 0.01f;
+    private const float COLLIDER_RADIUS_IDLE = 0.16f;
 
     public Piece piece { get; private set; }
-    public bool IsMoving { get; private set; }
+    public bool IsMoving { get; protected set; }
 
-    private Vector3 mMovingDirection;
-    private BoardView mBoardView;
-    private SpriteRenderer mSpriteRenderer;
+    protected virtual float Speed => SPEED;
+
+    protected Vector3 mMovingDirection;
+    protected BoardView mBoardView;
+    protected SpriteRenderer mSpriteRenderer;
+    protected CircleCollider2D mCollider;
 
     private void Awake()
     {
         mSpriteRenderer = GetComponent<SpriteRenderer>();
-        gameObject.AddComponent<SequenceAnimation2D>().Initiate(AssetController.ME.EyeAnimation, Random.Range(0, AssetController.ME.EyeAnimation.Length), Random.Range(8, 16));
+        mCollider = GetComponent<CircleCollider2D>();
+        AddAnimator();
         GameObject glow = new GameObject("Glow");
         glow.transform.SetParent(transform);
         glow.AddComponent<PieceGlow>().Initiate(Random.Range(3f, 30f));
+        mCollider.radius = COLLIDER_RADIUS_IDLE;
     }
 
-    public void Initiate(BoardView boardView, Piece piece)
+    protected virtual void AddAnimator()
+    {
+        gameObject.AddComponent<SequenceAnimation2D>().Initiate(AssetController.ME.EyeAnimation, Random.Range(0, AssetController.ME.EyeAnimation.Length), Random.Range(8, 16));
+    }
+
+    public virtual void Initiate(BoardView boardView, Piece piece)
     {
         mSpriteRenderer.sortingOrder = 20;
         transform.localScale = Vector3.one * 4f;
 
         mBoardView = boardView;
-        this.piece = piece;
 
-        piece.OnFallCallback += OnFall;
-        piece.OnBreakCallback += OnBreak;
+        if (piece != null)
+        {
+            this.piece = piece;
 
-        if(piece is NormalPiece)
-            PiecesController.Instance.ApplyColorByType(GetComponent<Renderer>(), ((NormalPiece)piece).pieceType);
+            piece.OnFallCallback += OnFall;
+            piece.OnBreakCallback += OnBreak;
+
+            if (piece is NormalPiece)
+                PiecesController.Instance.ApplyColorByType(GetComponent<Renderer>(), ((NormalPiece)piece).pieceType);
+        }
     }
 
     public void Shoot(Vector3 direction)
     {
+        mCollider.radius = 0.12f;
         IsMoving = true;
         mMovingDirection = direction;
     }
 
-    private void SnapPiece(Vector3 otherPiecePosition)
+    protected virtual void SnapPiece(Vector3 otherPiecePosition)
     {
         IsMoving = false;
         Vector2Int linePos;
@@ -77,6 +94,8 @@ public class PieceView : PoolingObject
         transform.localPosition = finalPosition;
         mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, linePos.y, linePos.x);
         mBoardView.gameView.LockPiece(this);
+
+        mCollider.radius = COLLIDER_RADIUS_IDLE;
 
         mBoardView.gameView.Dump();
     }
@@ -128,9 +147,12 @@ public class PieceView : PoolingObject
         if (!IsMoving || !isUsing)
             return;
 
-        transform.localPosition += mMovingDirection * SPEED;
-        var lp = BoardUtils.GetLineAndPosition(transform.localPosition, mBoardView.board);
-        mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, lp.y, lp.x);
+        transform.localPosition += mMovingDirection * Speed;
+        if (piece != null)
+        {
+            var lp = BoardUtils.GetLineAndPosition(transform.localPosition, mBoardView.board);
+            mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, lp.y, lp.x);
+        }
 
         Predict();
     }
@@ -158,7 +180,12 @@ public class PieceView : PoolingObject
 
         if (collision.tag == "Roof")
             SnapPiece(collision.bounds.ClosestPoint(transform.localPosition));
-        else if(collision.tag == "Wall")
-            mMovingDirection.x *= -1;
+        else if (collision.tag == "Wall")
+            OnWallCollision();
+    }
+
+    protected virtual void OnWallCollision()
+    {
+        mMovingDirection.x *= -1;
     }
 }

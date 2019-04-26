@@ -8,7 +8,6 @@ namespace BAMEngine
         public bool DEBUG { get; private set; } = true;
 
         public Board board { get; private set; }
-
         private IGameView mGameView;
 
         private Task mTask;

@@ -33,11 +33,12 @@ public class AimController : MonoBehaviour
     private LineRenderer[] mGuideLines;
     private Material mGuideMaterial;
     private Vector2 mGuideLineOffset = new Vector2(0,0);
+    private GameView mGameView;
 
     private void Awake()
     {
         mGuideMaterial = Resources.Load<Material>("Material/GuideLine");
-
+        
         mGuideLines = new LineRenderer[5];
         for(int i = 0; i < 5; i++)
         {
@@ -50,13 +51,15 @@ public class AimController : MonoBehaviour
         }
     }
 
-    public void Initiate(Vector3 centerPoint, Action<Vector2> onShoot)
+    public void Initiate(Vector3 centerPoint, Action<Vector2> onShoot, GameView gameView)
     {
         mCenterPoint = centerPoint;
         mOnShoot = onShoot;
 
         mMainCamera = Camera.main;
         Direction = new Vector2(0, 1);
+
+        mGameView = gameView;   
     }
 
     private void Update()
@@ -97,7 +100,7 @@ public class AimController : MonoBehaviour
     public void UpdateGuideLine()
     {
         mCurrentIndex = 0;
-        Vector3[] v = new Vector3[] { Vector3.one * 100, Vector3.one * 100 };
+        Vector3[] v = { Vector3.one * 100, Vector3.one * 100 };
         foreach (var line in mGuideLines)
             line.SetPositions(v);
         FireGuideLine(new List<Vector3> { mCenterPoint }, mCenterPoint, Direction);

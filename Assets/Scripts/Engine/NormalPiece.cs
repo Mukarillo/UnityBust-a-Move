@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace BAMEngine
+﻿namespace BAMEngine
 {
     public class NormalPiece : Piece
     {
@@ -32,6 +30,6 @@ namespace BAMEngine
         }
 
         public static NormalPiece GetRandom() => new NormalPiece(GetRandomType());
-        public static PieceType GetRandomType() => (PieceType) Random.Range(0, (int) PieceType.MAX);
+        public static PieceType GetRandomType() => (PieceType) RandomPicker.random.Next(0, (int) PieceType.MAX);
     }
 }

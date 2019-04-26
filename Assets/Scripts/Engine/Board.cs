@@ -164,7 +164,7 @@ namespace BAMEngine
         {
             for (var i = 0; i < lines.Count; i++)
             {
-                if(!lines[i].IsRoof)
+                if(lines[i].IsRoof)
                     continue;
 
                 for (var j = 0; j < lines[i].Count; j++)
