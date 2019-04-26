@@ -48,6 +48,7 @@ public class GameView : MonoBehaviour, IGameView
     {
         mBoardView.LockPiece(piece);
         gameEngine.LockPiece(piece.piece);
+        mAimController.UpdateGuideLine();
     }
 
     public void RemovePiece(PieceView piece)

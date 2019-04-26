@@ -38,8 +38,8 @@ public class AimController : MonoBehaviour
     {
         mGuideMaterial = Resources.Load<Material>("Material/GuideLine");
 
-        mGuideLines = new LineRenderer[3];
-        for(int i = 0; i < 3; i++)
+        mGuideLines = new LineRenderer[5];
+        for(int i = 0; i < 5; i++)
         {
             mGuideLines[i] = new GameObject("GuideLine").AddComponent<LineRenderer>();
             mGuideLines[i].material = mGuideMaterial;
@@ -94,9 +94,12 @@ public class AimController : MonoBehaviour
         mGuideMaterial.SetTextureOffset("_MainTex", mGuideLineOffset);
     }
 
-    private void UpdateGuideLine()
+    public void UpdateGuideLine()
     {
         mCurrentIndex = 0;
+        Vector3[] v = new Vector3[] { Vector3.one * 100, Vector3.one * 100 };
+        foreach (var line in mGuideLines)
+            line.SetPositions(v);
         FireGuideLine(new List<Vector3> { mCenterPoint }, mCenterPoint, Direction);
     }
 
@@ -109,6 +112,7 @@ public class AimController : MonoBehaviour
         {
             mGuideLines[mCurrentIndex].SetPositions(positions.ToArray());
             mCurrentIndex++;
+            positions.Clear();
             positions.Add(col.point);
         }
 
