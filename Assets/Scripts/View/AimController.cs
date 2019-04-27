@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 public class AimController : MonoBehaviour
 {
@@ -97,8 +98,25 @@ public class AimController : MonoBehaviour
         mGuideMaterial.SetTextureOffset("_MainTex", mGuideLineOffset);
     }
 
-    public void UpdateGuideLine()
+    public void ShowGuideLine() => InternalToggleGuideLine(true);
+    public void HideGuideLine() => InternalToggleGuideLine(false);
+
+    private void InternalToggleGuideLine(bool active)
     {
+        foreach (var line in mGuideLines)
+            line.enabled = active;
+    }
+
+    public void UpdateGuideLine(float delay = 0f)
+    {
+        StartCoroutine(InternalUpdateGuideLine(delay));
+    }
+
+    private IEnumerator InternalUpdateGuideLine(float delay)
+    {
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+
         mCurrentIndex = 0;
         Vector3[] v = { Vector3.one * 100, Vector3.one * 100 };
         foreach (var line in mGuideLines)

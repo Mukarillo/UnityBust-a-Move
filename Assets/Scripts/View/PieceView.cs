@@ -11,56 +11,54 @@ public class PieceView : PoolingObject
     private const float MIN_OUT_SCALE = 8f;
     private const float MAX_OUT_SCALE = 15f;
     private const float COLLIDER_RADIUS_SHOOTING = 0.01f;
-    private const float COLLIDER_RADIUS_IDLE = 0.16f;
+    private const float COLLIDER_RADIUS_IDLE = 0.17f;
+
+    public int connections;
 
     public Piece piece { get; private set; }
     public bool IsMoving { get; protected set; }
 
-    protected virtual float Speed => SPEED;
-
-    protected Vector3 mMovingDirection;
-    protected BoardView mBoardView;
-    protected SpriteRenderer mSpriteRenderer;
-    protected CircleCollider2D mCollider;
+    private Vector3 mMovingDirection;
+    private BoardView mBoardView;
+    private SpriteRenderer mSpriteRenderer;
+    private CircleCollider2D mCollider;
+    private TrailRenderer mTrailRenderer;
 
     private void Awake()
     {
+        mTrailRenderer = GetComponent<TrailRenderer>();
+        mTrailRenderer.emitting = false;
         mSpriteRenderer = GetComponent<SpriteRenderer>();
         mCollider = GetComponent<CircleCollider2D>();
-        AddAnimator();
+        gameObject.AddComponent<SequenceAnimation2D>().Initiate(AssetController.ME.EyeAnimation, Random.Range(0, AssetController.ME.EyeAnimation.Length), Random.Range(8, 16));
         GameObject glow = new GameObject("Glow");
         glow.transform.SetParent(transform);
         glow.AddComponent<PieceGlow>().Initiate(Random.Range(3f, 30f));
         mCollider.radius = COLLIDER_RADIUS_IDLE;
     }
 
-    protected virtual void AddAnimator()
-    {
-        gameObject.AddComponent<SequenceAnimation2D>().Initiate(AssetController.ME.EyeAnimation, Random.Range(0, AssetController.ME.EyeAnimation.Length), Random.Range(8, 16));
-    }
-
     public virtual void Initiate(BoardView boardView, Piece piece)
     {
+        mTrailRenderer.emitting = false;
+
         mSpriteRenderer.sortingOrder = 20;
         transform.localScale = Vector3.one * 4f;
 
         mBoardView = boardView;
 
-        if (piece != null)
-        {
-            this.piece = piece;
+        this.piece = piece;
 
-            piece.OnFallCallback += OnFall;
-            piece.OnBreakCallback += OnBreak;
+        piece.OnFallCallback += OnFall;
+        piece.OnBreakCallback += OnBreak;
 
-            if (piece is NormalPiece)
-                PiecesController.Instance.ApplyColorByType(GetComponent<Renderer>(), ((NormalPiece)piece).pieceType);
-        }
+        if (piece is NormalPiece)
+            PiecesController.Instance.ApplyColorByType(GetComponent<Renderer>(), mTrailRenderer, ((NormalPiece)piece).pieceType);
     }
 
     public void Shoot(Vector3 direction)
     {
-        mCollider.radius = 0.12f;
+        mTrailRenderer.emitting = true;
+        mCollider.radius = COLLIDER_RADIUS_SHOOTING;
         IsMoving = true;
         mMovingDirection = direction;
     }
@@ -94,6 +92,7 @@ public class PieceView : PoolingObject
         transform.localPosition = finalPosition;
         mBoardView.gameView.gameEngine.UpdatePiecePosition(piece, linePos.y, linePos.x);
         mBoardView.gameView.LockPiece(this);
+        mTrailRenderer.emitting = false;
 
         mCollider.radius = COLLIDER_RADIUS_IDLE;
 
@@ -112,6 +111,7 @@ public class PieceView : PoolingObject
 
     private void AnimateOut()
     {
+        mTrailRenderer.emitting = true;
         mSpriteRenderer.sortingOrder = 30;
         IsMoving = false;
 
@@ -132,7 +132,7 @@ public class PieceView : PoolingObject
     public override void OnRelease()
     {
         if (piece != null)
-        { 
+        {
             piece.OnFallCallback -= OnFall;
             piece.OnBreakCallback -= OnBreak;
             piece = null;
@@ -144,10 +144,12 @@ public class PieceView : PoolingObject
 
     private void Update()
     {
+        if(piece?.HoldConnections != null)
+            connections = piece.HoldConnections.Count;
         if (!IsMoving || !isUsing)
             return;
 
-        transform.localPosition += mMovingDirection * Speed;
+        transform.localPosition += mMovingDirection * SPEED;
         if (piece != null)
         {
             var lp = BoardUtils.GetLineAndPosition(transform.localPosition, mBoardView.board);
@@ -161,7 +163,7 @@ public class PieceView : PoolingObject
     {
         for (int i = 0; i < 5; i++)
         {
-            var futurePosition = transform.localPosition + (mMovingDirection * (0.8f + (i/5f)));
+            var futurePosition = transform.localPosition + (mMovingDirection * (0.8f + (i / 5f)));
             var boardPosition = BoardUtils.GetLineAndPosition(futurePosition, mBoardView.board);
 
             var p = mBoardView.gameView.GetPieceOnBoard(boardPosition.y, boardPosition.x);
@@ -181,11 +183,6 @@ public class PieceView : PoolingObject
         if (collision.tag == "Roof")
             SnapPiece(collision.bounds.ClosestPoint(transform.localPosition));
         else if (collision.tag == "Wall")
-            OnWallCollision();
-    }
-
-    protected virtual void OnWallCollision()
-    {
-        mMovingDirection.x *= -1;
+            mMovingDirection.x *= -1;
     }
 }

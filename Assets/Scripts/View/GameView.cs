@@ -48,7 +48,8 @@ public class GameView : MonoBehaviour, IGameView
     {
         boardView.LockPiece(piece);
         gameEngine.LockPiece(piece.piece);
-        mAimController.UpdateGuideLine();
+        mAimController.ShowGuideLine();
+        mAimController.UpdateGuideLine(0.3f);
     }
 
     public void RemovePiece(PieceView piece)
@@ -103,6 +104,7 @@ public class GameView : MonoBehaviour, IGameView
 
     private void OnShoot(Vector2 direction)
     {
+        mAimController.HideGuideLine();
         mCurrentPiece.piece.UpdatePosition(boardView.board.lines[Board.MAX_LINES - 1], (Board.MAX_PIECES_PER_LINE / 2) - 1);
         mCurrentPiece.Shoot(direction);
     }

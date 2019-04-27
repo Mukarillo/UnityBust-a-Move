@@ -13,10 +13,15 @@ public class PiecesController : MonoBehaviour
         Instance = this;
     }
 
-    public void ApplyColorByType(Renderer renderer, NormalPiece.PieceType pieceType)
+    public void ApplyColorByType(Renderer renderer, TrailRenderer trail, NormalPiece.PieceType pieceType)
     {
+        var c = colors[(int)pieceType];
         renderer.GetPropertyBlock(mPropBlock);
-        mPropBlock.SetColor("_Color", colors[(int)pieceType]);
+        mPropBlock.SetColor("_Color", c);
         renderer.SetPropertyBlock(mPropBlock);
+
+        trail.startColor = c;
+        c.a = 0f;
+        trail.endColor = c;
     }
 }
