@@ -12,9 +12,7 @@ public class PieceView : PoolingObject
     private const float MAX_OUT_SCALE = 15f;
     private const float COLLIDER_RADIUS_SHOOTING = 0.01f;
     private const float COLLIDER_RADIUS_IDLE = 0.17f;
-
-    public int connections;
-
+    
     public Piece piece { get; private set; }
     public bool IsMoving { get; protected set; }
 
@@ -144,8 +142,6 @@ public class PieceView : PoolingObject
 
     private void Update()
     {
-        if(piece?.HoldConnections != null)
-            connections = piece.HoldConnections.Count;
         if (!IsMoving || !isUsing)
             return;
 

@@ -107,12 +107,12 @@ public class AimController : MonoBehaviour
             line.enabled = active;
     }
 
-    public void UpdateGuideLine(float delay = 0f)
+    public void UpdateGuideLine(float delay = 0f, Action onUpdateGuideLine = null)
     {
-        StartCoroutine(InternalUpdateGuideLine(delay));
+        StartCoroutine(InternalUpdateGuideLine(delay, onUpdateGuideLine));
     }
 
-    private IEnumerator InternalUpdateGuideLine(float delay)
+    private IEnumerator InternalUpdateGuideLine(float delay, Action onUpdateGuideLine = null)
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
@@ -122,6 +122,8 @@ public class AimController : MonoBehaviour
         foreach (var line in mGuideLines)
             line.SetPositions(v);
         FireGuideLine(new List<Vector3> { mCenterPoint }, mCenterPoint, Direction);
+
+        onUpdateGuideLine?.Invoke();
     }
 
     int mCurrentIndex = 0;

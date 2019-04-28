@@ -173,11 +173,10 @@ namespace BAMEngine
                     if (piece == null) continue;
                     if (piece.HoldConnections.Count == 0)
                         RecursiveFall(piece);
-                    Debug.Log(piece.HoldConnections.Count);
                     if (piece.HoldConnections.Count == 1 && piece.HoldConnections[0].HoldConnections.Count == 1)
                     {
                         RemoveNormalPiece(piece, piece.Fall);
-                        RemoveNormalPiece((NormalPiece)piece.HoldConnections[0], piece.Fall);
+                        RemoveNormalPiece((NormalPiece)piece.HoldConnections[0], piece.HoldConnections[0].Fall);
                     }
                 }
             }

@@ -24,6 +24,7 @@ public class GameView : MonoBehaviour, IGameView
     private PieceView mCurrentPiece;
     private AimController mAimController;
     private Chain mChain;
+    private bool mCanShoot = true;
 
     private void Awake()
     {
@@ -49,7 +50,7 @@ public class GameView : MonoBehaviour, IGameView
         boardView.LockPiece(piece);
         gameEngine.LockPiece(piece.piece);
         mAimController.ShowGuideLine();
-        mAimController.UpdateGuideLine(0.3f);
+        mAimController.UpdateGuideLine(0.3f, () => mCanShoot = true);
     }
 
     public void RemovePiece(PieceView piece)
@@ -104,6 +105,10 @@ public class GameView : MonoBehaviour, IGameView
 
     private void OnShoot(Vector2 direction)
     {
+        if (!mCanShoot)
+            return;
+        mCanShoot = false;
+
         mAimController.HideGuideLine();
         mCurrentPiece.piece.UpdatePosition(boardView.board.lines[Board.MAX_LINES - 1], (Board.MAX_PIECES_PER_LINE / 2) - 1);
         mCurrentPiece.Shoot(direction);
