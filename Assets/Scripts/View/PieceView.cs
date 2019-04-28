@@ -12,7 +12,11 @@ public class PieceView : PoolingObject
     private const float MAX_OUT_SCALE = 15f;
     private const float COLLIDER_RADIUS_SHOOTING = 0.01f;
     private const float COLLIDER_RADIUS_IDLE = 0.17f;
-    
+
+    public bool isRoof;
+    public int hold;
+    public int normal;
+
     public Piece piece { get; private set; }
     public bool IsMoving { get; protected set; }
 
@@ -140,8 +144,19 @@ public class PieceView : PoolingObject
         base.OnRelease();
     }
 
+    bool canlog;
     private void Update()
     {
+        if(piece != null)
+        {
+            if(piece.Line != null)
+                isRoof = piece.Line.IsRoof;
+            if(piece.HoldConnections != null)
+                hold = piece.HoldConnections.Count;
+            if(piece.Connections != null)
+                normal = piece.Connections.Count;
+        }
+
         if (!IsMoving || !isUsing)
             return;
 
