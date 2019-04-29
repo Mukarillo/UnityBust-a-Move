@@ -171,15 +171,31 @@ namespace BAMEngine
                 {
                     var piece = (NormalPiece)lines[i][j];
                     if (piece == null) continue;
-                    if (piece.HoldConnections.Count == 0)
+                    if(!PreviousLineHasPieces(piece.Line))
                         RemoveNormalPiece(piece, piece.Fall);
-                    if (piece.HoldConnections.Count == 1 && piece.HoldConnections[0].HoldConnections.Count == 1)
-                    {
+                    else if (piece.HoldConnections.Count == 0)
                         RemoveNormalPiece(piece, piece.Fall);
-                        RemoveNormalPiece((NormalPiece)piece.HoldConnections[0], piece.HoldConnections[0].Fall);
-                    }
+                    else if (piece.HoldConnections.Count == 1 && piece.HoldConnections[0].HoldConnections.Count == 1 && piece.HoldConnections[0].HoldConnections[0] == piece)
+                        RecursiveFall(piece);
                 }
             }
+        }
+
+        private void RecursiveFall(NormalPiece piece)
+        {
+            RemoveNormalPiece(piece, piece.Fall);
+            foreach (var pieceConnection in piece.NotHoldConnections)
+            {
+                if (pieceConnection.isActive)
+                    RecursiveFall((NormalPiece)pieceConnection);
+            }
+        }
+
+        private bool PreviousLineHasPieces(PiecesLine line)
+        {
+            if (line.IsRoof)
+                return false;
+            return lines[line.Index - 1].HasPiece;
         }
 
         private void RemoveNormalPiece(NormalPiece piece, Action act)

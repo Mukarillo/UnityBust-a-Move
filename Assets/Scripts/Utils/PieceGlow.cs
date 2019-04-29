@@ -9,7 +9,7 @@ public class PieceGlow : SequenceAnimation2D
 
     public void Initiate(float waitTimeBetweenPlays = 2f)
     {
-        mSpriteRenderer.sortingOrder = 1;
+        mSpriteRenderer.sortingOrder = 21;
         transform.localPosition = Vector3.zero;
         transform.localScale = Vector3.one;
 

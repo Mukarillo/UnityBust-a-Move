@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BAMEngine
 {
@@ -9,6 +10,7 @@ namespace BAMEngine
 
         public List<Piece> Connections { get; protected set; }
         public List<Piece> HoldConnections { get; protected set; }
+        public List<Piece> NotHoldConnections => Connections.Except(Connections).ToList();
 
         public Action OnBreakCallback;
         public Action OnFallCallback;

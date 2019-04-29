@@ -3,6 +3,6 @@ namespace BAMEngine
 {
     public class RandomPicker
     {
-        public static Random random = new Random(23456);
+        public static Random random = new Random();
     }
 }
