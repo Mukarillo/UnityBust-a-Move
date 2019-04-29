@@ -11,7 +11,8 @@ public class GameView : MonoBehaviour, IGameView
     public bool DEBUG { get; private set; } = true;
     public readonly Vector3 BallSpawnPoint = new Vector3(3.5f, -11f, 0f);
 
-    public bool ShouldStepDown => false;
+    public bool ShouldStepDown => true;
+    public int TimeToStepDown => 10;
 
     public GameObject piecePrefab;
     public GameObject aimArrow;

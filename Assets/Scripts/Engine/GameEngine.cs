@@ -4,7 +4,6 @@ namespace BAMEngine
 {
     public class GameEngine
     {
-        private const int TIME_TO_STEP_DOWN = 10;
         public bool DEBUG { get; private set; } = true;
 
         public Board board { get; private set; }
@@ -33,7 +32,7 @@ namespace BAMEngine
 
         private void StartCounting()
         {
-            mTask = Task.Delay(TIME_TO_STEP_DOWN * 1000).ContinueWith(t =>
+            mTask = Task.Delay(mGameView.TimeToStepDown * 1000).ContinueWith(t =>
             {
                 if (!mGameOver)
                     MainThread.Invoke(StepDown);
