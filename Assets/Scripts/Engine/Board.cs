@@ -172,23 +172,13 @@ namespace BAMEngine
                     var piece = (NormalPiece)lines[i][j];
                     if (piece == null) continue;
                     if (piece.HoldConnections.Count == 0)
-                        RecursiveFall(piece);
+                        RemoveNormalPiece(piece, piece.Fall);
                     if (piece.HoldConnections.Count == 1 && piece.HoldConnections[0].HoldConnections.Count == 1)
                     {
                         RemoveNormalPiece(piece, piece.Fall);
                         RemoveNormalPiece((NormalPiece)piece.HoldConnections[0], piece.HoldConnections[0].Fall);
                     }
                 }
-            }
-        }
-
-        private void RecursiveFall(NormalPiece piece)
-        {
-            RemoveNormalPiece(piece, piece.Fall);
-            foreach (var pieceConnection in piece.Connections)
-            {
-                if(pieceConnection.isActive)
-                    RecursiveFall((NormalPiece)pieceConnection);
             }
         }
 
